@@ -94,12 +94,12 @@ end
 
 Then /^(?:|I )should see all of the movies$/ do 
   Movie.find(:all).each do |movie|
-    step "I should see \"#{movie.title}\""    
+    step "I should see the following movies: \"#{movie.title}\""    
   end 
 end
 
 Then /^(?:|I )should see none of the movies$/ do 
   Movie.find(:all).each do |movie|
-    step "I should not see \"#{movie.title}\""    
+    step "I should not see the following movies: \"#{movie.title}\""    
   end 
 end
