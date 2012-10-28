@@ -91,3 +91,15 @@ And /^(?:|I )press on the homepage "([^"]*)"$/ do |button|
     click_button(button)
   end
 end
+
+Then /^(?:|I )should see all of the movies$/ do 
+  Movie.find(:all).each do |movie|
+    step "I should see \"#{movie.title}\""    
+  end 
+end
+
+Then /^(?:|I )should see none of the movies$/ do 
+  Movie.find(:all).each do |movie|
+    step "I should not see \"#{movie.title}\""    
+  end 
+end
