@@ -4,22 +4,27 @@ Given /the following movies exist/ do |movies_table|
   movies_table.hashes.each do |movie|
     # each returned element will be a hash whose key is the table header.
     # you should arrange to add that movie to the database here.
-    Movie.create!(:title => movie['title'],
-                  :rating => movie['rating'],
-                  :description => movie['description'],
-                  :release_date => movie['release_date'])
+    # title, rating, release_date
+    m = Movie.new(movie)
+    m.save()
   end
-  #flunk "Unimplemented"
 end
 
 # Make sure that one string (regexp) occurs before or after another one
 #   on the same page
-
 Then /I should see "(.*)" before "(.*)"/ do |e1, e2|
   #  ensure that that e1 occurs before e2.
   #  page.content  is the entire content of the page as a string.
-  assert page.body =~ /#{e1}.*#{e2}/m
-  #flunk "Unimplemented"
+  assert page.body.match(/#{e1}.*#{e2}/m), "#{e1} should come before #{e2}"
+end
+
+Then /the movies should be sorted by "(.*)"/ do |field|
+  prev=""
+  Movie.find(:all, :order => field).each do |movie|
+    curr = movie.send(field)
+    step "I should see \"#{prev}\" before \"#{curr}\"" if prev != ""
+    prev = curr 
+  end
 end
 
 # Make it easier to express checking or unchecking several boxes at once
@@ -30,76 +35,39 @@ When /I (un)?check the following ratings: (.*)/ do |uncheck, rating_list|
   # HINT: use String#split to split up the rating_list, then
   #   iterate over the ratings and reuse the "When I check..." or
   #   "When I uncheck..." steps in lines 89-95 of web_steps.rb
-  rating_list = rating_list.split(%r{,\s*})
-  rating_list.each do |rating|
-    rating = 'ratings_' + rating
-    if uncheck
-      uncheck(rating)
-    else
-      check(rating)
-    end
-  end
+  rating_list.split(/\s*,\s*/).each do |rating|
+    step "I #{uncheck}check \"ratings_#{rating}\""
+  end 
 end
 
+Then /^(?:|I )should see \/([^\/]*)\/ inside of (.*)$/ do |regexp,element|
+  regexp = Regexp.new(regexp)
 
-Then /^the "([^"]*)" checkbox(?: within (.*))? should be checked$/ do |label, parent|
-  with_scope(parent) do
-    field_checked = find_field(label)['checked']
-    if field_checked.respond_to? :should
-      field_checked.should be_true
-    else
-      assert field_checked
-    end
-  end
-end
-
-Then /^the "([^"]*)" checkbox(?: within (.*))? should not be checked$/ do |label, parent|
-  with_scope(parent) do
-    field_checked = find_field(label)['checked']
-    if field_checked.respond_to? :should
-      field_checked.should be_false
-    else
-      assert !field_checked
-    end
-  end
-end
-
-Then /^(?:|I )should (not )?see the following movies: (.*)/ do |not_see, text|
-  movie_list = text.split(%r{, })
-  movie_list.each do |movie|
-    if not_see
-      if page.respond_to? :should
-        page.should have_no_content(movie)
-      else
-        assert page.has_no_content?(movie)
-      end
-    else
-      if page.respond_to? :should
-        page.should have_content(movie)
-      else
-        assert page.has_content?(movie)
-      end
-    end
-  end
-end
-
-And /^(?:|I )press on the homepage "([^"]*)"$/ do |button|
-  if button == "Refresh"
-    button = 'ratings_submit'
-    click_button(button)
+  if page.respond_to? :should
+    page.should have_xpath("//*/#{element}", :text => regexp)
   else
-    click_button(button)
+    assert page.has_xpath?("//*/#{element}", :text => regexp)
+  end
+end
+
+Then /^(?:|I )should not see \/([^\/]*)\/ inside of (.*)$/ do |regexp,element|
+  regexp = Regexp.new(regexp)
+
+  if page.respond_to? :should
+    page.should have_no_xpath("//*/#{element}", :text => regexp)
+  else
+    assert page.has_no_xpath?("//*/#{element}", :text => regexp)
   end
 end
 
 Then /^(?:|I )should see all of the movies$/ do 
   Movie.find(:all).each do |movie|
-    step "I should see the following movies: \"#{movie.title}\""    
+    step "I should see \"#{movie.title}\""    
   end 
 end
 
 Then /^(?:|I )should see none of the movies$/ do 
   Movie.find(:all).each do |movie|
-    step "I should not see the following movies: \"#{movie.title}\""    
+    step "I should not see \"#{movie.title}\""    
   end 
 end

@@ -25,29 +25,24 @@ Scenario: restrict to movies with 'PG' or 'R' ratings
   # enter step(s) to check the 'PG' and 'R' checkboxes
   When I check the following ratings: PG, R
   # enter step(s) to uncheck all other checkboxes
-  And I uncheck the following ratings: G, PG-13, NC-17
+  And I uncheck the following ratings: PG-13, G 
   # enter step to "submit" the search form on the homepage
-  And I press "Refresh"
+  And I press "ratings_submit"
   # enter step(s) to ensure that PG and R movies are visible
-  Then I should see "The Terminator"
-  And I should see "When Harry Met Sally"
-  And I should see "Amelie"
-  And I should see "Raiders of the Lost Ark"
+  Then I should see /^PG$/ inside of td 
+  Then I should see /^R$/ inside of td 
   # enter step(s) to ensure that other movies are not visible
-  And I should not see "Aladdin"
-  And I should not see "The Help"
-  And I should not see "Chocolat"
-  And I should not see "2001: A Space Odyssey"
-  And I should not see "Chicken Run"
+  Then I should not see /^PG-13$/ inside of td 
+  Then I should not see /^G$/ inside of td 
 
 Scenario: no ratings selected
   # see assignment
-  When I uncheck the following ratings: G, PG, PG-13, R, NC-17
-  And I press "Refresh"
-  Then I should see none of the movies
+  When I uncheck the following ratings: PG, R, PG-13, G
+  And I press "ratings_submit"
+  Then I should see none of the movies  
 
 Scenario: all ratings selected
   # see assignment
-  When I check the following ratings: G, PG, PG-13, R, NC-17
-  And I press "Refresh"
-  Then I should see all of the movies
+  When I check the following ratings: PG, R, PG-13, G
+  And I press "ratings_submit"
+  Then I should see all of the movies  
